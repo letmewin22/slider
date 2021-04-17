@@ -117,7 +117,107 @@ parcelRequire = (function (modules, cache, entry, globalName) {
   }
 
   return newRequire;
-})({"node_modules/@emotionagency/utils/build/raf/raf.js":[function(require,module,exports) {
+})({"js/events/CustomMouseEvent.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.CustomMouseEvent = void 0;
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+var CustomMouseEvent = /*#__PURE__*/function () {
+  function CustomMouseEvent(events) {
+    _classCallCheck(this, CustomMouseEvent);
+
+    this.event = this.event.bind(this);
+    this.events = events;
+  }
+
+  _createClass(CustomMouseEvent, [{
+    key: "on",
+    value: function on(target, cb, opts) {
+      var _this = this;
+
+      this.events.forEach(function (event) {
+        target.addEventListener(event, _this.event, opts);
+      });
+      this.cb = cb;
+    }
+  }, {
+    key: "off",
+    value: function off(target, cb) {
+      var _this2 = this;
+
+      this.events.forEach(function (event) {
+        target.removeEventListener(event, _this2.event);
+      });
+    }
+  }, {
+    key: "event",
+    value: function event(e) {
+      var _e$changedTouches;
+
+      var isTouch = !!((_e$changedTouches = e.changedTouches) !== null && _e$changedTouches !== void 0 && _e$changedTouches.length);
+      var clientX = !isTouch ? e.clientX : e.changedTouches[0].clientX;
+      var event = {
+        originalEvent: e,
+        clientX: clientX
+      };
+      this.cb(event);
+    }
+  }]);
+
+  return CustomMouseEvent;
+}();
+
+exports.CustomMouseEvent = CustomMouseEvent;
+},{}],"js/events/mouseevents.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.mouseup = exports.mousemove = exports.mousedown = void 0;
+
+var _CustomMouseEvent = require("./CustomMouseEvent");
+
+var mousedownInstance = new _CustomMouseEvent.CustomMouseEvent(['mousedown', 'touchstart']);
+var mousedown = {
+  on: function on(target, cb, opts) {
+    return mousedownInstance.on(target, cb, opts);
+  },
+  off: function off(target, cb) {
+    return mousedownInstance.off(target, cb);
+  }
+};
+exports.mousedown = mousedown;
+var mousemoveInstance = new _CustomMouseEvent.CustomMouseEvent(['mousemove', 'touchmove']);
+var mousemove = {
+  on: function on(target, cb, opts) {
+    return mousemoveInstance.on(target, cb, opts);
+  },
+  off: function off(target, cb) {
+    return mousemoveInstance.off(target, cb);
+  }
+};
+exports.mousemove = mousemove;
+var mouseupInstance = new _CustomMouseEvent.CustomMouseEvent(['mouseup', 'touchend']);
+var mouseup = {
+  on: function on(target, cb, opts) {
+    return mouseupInstance.on(target, cb, opts);
+  },
+  off: function off(target, cb) {
+    return mouseupInstance.off(target, cb);
+  }
+};
+exports.mouseup = mouseup;
+},{"./CustomMouseEvent":"js/events/CustomMouseEvent.js"}],"node_modules/@emotionagency/utils/build/raf/raf.js":[function(require,module,exports) {
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.raf = exports.RAF = void 0;
@@ -332,6 +432,8 @@ exports.Slider = void 0;
 
 var _utils = require("@emotionagency/utils");
 
+var _mouseevents = require("./events/mouseevents");
+
 function _toConsumableArray(arr) { return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _unsupportedIterableToArray(arr) || _nonIterableSpread(); }
 
 function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
@@ -354,15 +456,11 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
 
 var Slider = /*#__PURE__*/function () {
   function Slider() {
+    var _opts$el, _opts$ease, _opts$speed, _opts$offset, _opts$velocity;
+
     var opts = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
 
     _classCallCheck(this, Slider);
-
-    _defineProperty(this, "slider", document.querySelector('.js-slider'));
-
-    _defineProperty(this, "sliderInner", this.slider.querySelector('.js-slider__inner'));
-
-    _defineProperty(this, "slides", _toConsumableArray(this.slider.querySelectorAll('.js-slide')));
 
     _defineProperty(this, "startX", 0);
 
@@ -379,12 +477,15 @@ var Slider = /*#__PURE__*/function () {
     _defineProperty(this, "offset", 0);
 
     this.opts = {
-      el: opts.el || '.js-slider',
-      ease: opts.ease || 0.1,
-      speed: opts.speed || 1.5,
-      offset: opts.offset || 220,
-      velocity: 25
+      el: (_opts$el = opts.el) !== null && _opts$el !== void 0 ? _opts$el : '.js-slider',
+      ease: (_opts$ease = opts.ease) !== null && _opts$ease !== void 0 ? _opts$ease : 0.1,
+      speed: (_opts$speed = opts.speed) !== null && _opts$speed !== void 0 ? _opts$speed : 1.5,
+      offset: (_opts$offset = opts.offset) !== null && _opts$offset !== void 0 ? _opts$offset : 220,
+      velocity: (_opts$velocity = opts.velocity) !== null && _opts$velocity !== void 0 ? _opts$velocity : 25
     };
+    this.slider = document.querySelector(this.opts.el);
+    this.sliderInner = this.slider.querySelector('.js-slider__inner');
+    this.slides = _toConsumableArray(this.slider.querySelectorAll('.js-slide'));
   }
 
   _createClass(Slider, [{
@@ -401,10 +502,11 @@ var Slider = /*#__PURE__*/function () {
     key: "init",
     value: function init() {
       this.bounds();
-      this.slider.addEventListener('mousedown', this.onMousedown);
-      this.slider.addEventListener('touchstart', this.onMousedown);
-      document.body.addEventListener('mouseup', this.onMouseup);
-      this.slider.addEventListener('touchend', this.onMousedown);
+
+      _mouseevents.mousedown.on(this.slider, this.onMousedown);
+
+      _mouseevents.mouseup.on(document.body, this.onMouseup);
+
       this.setSizes();
 
       _utils.raf.on(this.animate);
@@ -426,25 +528,18 @@ var Slider = /*#__PURE__*/function () {
   }, {
     key: "onMousemove",
     value: function onMousemove(e) {
-      var _e$clientX, _e$clientX2;
-
-      var left = (_e$clientX = e.clientX) !== null && _e$clientX !== void 0 ? _e$clientX : e.touches[0].clientX;
-      console.log((_e$clientX2 = e.clientX) !== null && _e$clientX2 !== void 0 ? _e$clientX2 : e.touches[0].clientX);
+      var left = e.clientX;
       this.currentX = this.endX + (left - this.startX) * this.opts.speed;
       this.currentX = (0, _utils.clamp)(this.currentX, this.min + this.offset, this.max - this.offset);
     }
   }, {
     key: "onMousedown",
     value: function onMousedown(e) {
-      var _e$clientX3;
+      _mouseevents.mousemove.on(document.body, this.onMousemove, {
+        passive: true
+      });
 
-      document.body.addEventListener('mousemove', this.onMousemove, {
-        passive: true
-      });
-      document.body.addEventListener('touchmove', this.onMousemove, {
-        passive: true
-      });
-      this.startX = (_e$clientX3 = e.clientX) !== null && _e$clientX3 !== void 0 ? _e$clientX3 : e.touches[0].clientX;
+      this.startX = e.clientX;
       this.slider.classList.add('is-grabbing');
       this.slides.forEach(function (slide, idx) {
         slide.style.transform = "translateX(".concat(-16 * idx, "px)");
@@ -457,12 +552,9 @@ var Slider = /*#__PURE__*/function () {
     value: function onMouseup() {
       this.offset = 0;
       this.currentX = (0, _utils.clamp)(this.currentX, this.min, this.max);
-      document.body.removeEventListener('mousemove', this.onMousemove, {
-        passive: true
-      });
-      document.body.removeEventListener('touchmove', this.onMousemove, {
-        passive: true
-      });
+
+      _mouseevents.mousemove.off(document.body, this.onMousemove);
+
       this.slides.forEach(function (slide, idx) {
         slide.style.transform = 'translateX(0px)';
       });
@@ -487,11 +579,11 @@ var Slider = /*#__PURE__*/function () {
   }, {
     key: "destroy",
     value: function destroy() {
-      this.slider.removeEventListener('mousedown', this.onMousedown);
-      document.body.removeEventListener('mouseup', this.onMouseup);
-      document.body.removeEventListener('mousemove', this.onMousemove, {
-        passive: true
-      });
+      _mouseevents.mousedown.off(this.slider, this.onMousedown);
+
+      _mouseevents.mouseup.off(document.body, this.onMouseup);
+
+      _mouseevents.mousemove.off(document.body, this.onMousemove);
 
       _utils.raf.off(this.animate);
 
@@ -503,10 +595,12 @@ var Slider = /*#__PURE__*/function () {
 }();
 
 exports.Slider = Slider;
-},{"@emotionagency/utils":"node_modules/@emotionagency/utils/build/index.js"}],"img/1.jpg":[function(require,module,exports) {
+},{"@emotionagency/utils":"node_modules/@emotionagency/utils/build/index.js","./events/mouseevents":"js/events/mouseevents.js"}],"img/1.jpg":[function(require,module,exports) {
 module.exports = "/1.dc197a9a.jpg";
 },{}],"js/app.js":[function(require,module,exports) {
 "use strict";
+
+var _mouseevents = require("./events/mouseevents");
 
 var _Slider = require("./Slider");
 
@@ -514,7 +608,6 @@ var _ = _interopRequireDefault(require("/img/1.jpg"));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-// import {Slider} from './ref/Slider2'
 window.addEventListener('load', function () {
   var items = document.querySelectorAll('[data-bg]');
   items.forEach(function (el) {
@@ -523,9 +616,9 @@ window.addEventListener('load', function () {
     el.setAttribute('data-bg', url);
   });
   var slider = new _Slider.Slider();
-  slider.init();
+  slider.init(); // slider.destroy()
 });
-},{"./Slider":"js/Slider.js","/img/1.jpg":"img/1.jpg"}],"C:/Users/Леонид/AppData/Roaming/npm/node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
+},{"./events/mouseevents":"js/events/mouseevents.js","./Slider":"js/Slider.js","/img/1.jpg":"img/1.jpg"}],"C:/Users/Леонид/AppData/Roaming/npm/node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
 var OldModule = module.bundle.Module;
@@ -553,7 +646,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "49610" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "49902" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};

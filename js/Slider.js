@@ -1,10 +1,8 @@
 import {clamp, raf, lerp, resize} from '@emotionagency/utils'
 
-export class Slider {
-  slider = document.querySelector('.js-slider')
-  sliderInner = this.slider.querySelector('.js-slider__inner')
-  slides = [...this.slider.querySelectorAll('.js-slide')]
+import {mousedown, mousemove, mouseup} from './events/mouseevents'
 
+export class Slider {
   startX = 0
   endX = 0
 
@@ -18,12 +16,16 @@ export class Slider {
 
   constructor(opts = {}) {
     this.opts = {
-      el: opts.el || '.js-slider',
-      ease: opts.ease || 0.1,
-      speed: opts.speed || 1.5,
-      offset: opts.offset || 220,
-      velocity: 25,
+      el: opts.el ?? '.js-slider',
+      ease: opts.ease ?? 0.1,
+      speed: opts.speed ?? 1.5,
+      offset: opts.offset ?? 220,
+      velocity: opts.velocity ?? 25,
     }
+
+    this.slider = document.querySelector(this.opts.el)
+    this.sliderInner = this.slider.querySelector('.js-slider__inner')
+    this.slides = [...this.slider.querySelectorAll('.js-slide')]
   }
 
   bounds() {
@@ -42,10 +44,9 @@ export class Slider {
 
   init() {
     this.bounds()
-    this.slider.addEventListener('mousedown', this.onMousedown)
-    this.slider.addEventListener('touchstart', this.onMousedown)
-    document.body.addEventListener('mouseup', this.onMouseup)
-    this.slider.addEventListener('touchend', this.onMousedown)
+
+    mousedown.on(this.slider, this.onMousedown)
+    mouseup.on(document.body, this.onMouseup)
 
     this.setSizes()
 
@@ -64,8 +65,8 @@ export class Slider {
   }
 
   onMousemove(e) {
-    const left = e.clientX ?? e.touches[0].clientX
-    console.log(e.clientX ?? e.touches[0].clientX)
+    const left = e.clientX
+
     this.currentX = this.endX + (left - this.startX) * this.opts.speed
     this.currentX = clamp(
       this.currentX,
@@ -75,15 +76,12 @@ export class Slider {
   }
 
   onMousedown(e) {
-    document.body.addEventListener('mousemove', this.onMousemove, {
+    mousemove.on(document.body, this.onMousemove, {
       passive: true,
     })
 
-    document.body.addEventListener('touchmove', this.onMousemove, {
-      passive: true,
-    })
+    this.startX = e.clientX
 
-    this.startX = e.clientX ?? e.touches[0].clientX
     this.slider.classList.add('is-grabbing')
 
     this.slides.forEach((slide, idx) => {
@@ -98,13 +96,7 @@ export class Slider {
     this.offset = 0
     this.currentX = clamp(this.currentX, this.min, this.max)
 
-    document.body.removeEventListener('mousemove', this.onMousemove, {
-      passive: true,
-    })
-
-    document.body.removeEventListener('touchmove', this.onMousemove, {
-      passive: true,
-    })
+    mousemove.off(document.body, this.onMousemove)
 
     this.slides.forEach((slide, idx) => {
       slide.style.transform = 'translateX(0px)'
@@ -132,11 +124,9 @@ export class Slider {
   }
 
   destroy() {
-    this.slider.removeEventListener('mousedown', this.onMousedown)
-    document.body.removeEventListener('mouseup', this.onMouseup)
-    document.body.removeEventListener('mousemove', this.onMousemove, {
-      passive: true,
-    })
+    mousedown.off(this.slider, this.onMousedown)
+    mouseup.off(document.body, this.onMouseup)
+    mousemove.off(document.body, this.onMousemove)
 
     raf.off(this.animate)
     resize.off(this.resize)

@@ -11,6 +11,9 @@
   padding-top: 200px;
   padding-left: 120px;
   overflow: hidden;
+  @media screen and (max-width: 960px) {
+    padding-left: 20px;
+  }
 }
 
 .container {
@@ -31,6 +34,7 @@
   height: 100%;
   @media screen and (max-width: 960px) {
     width: 100%;
+    margin-left: 0px;
   }
 }
 .section__images-wrapper {
@@ -55,7 +59,9 @@
 }
 .section__image {
   height: 100%;
-  width: 35.10417vw;
+  @media screen and (max-width: 960px) {
+    width: 235px;
+  }
   overflow: hidden;
   transition: transform 0.6s ease;
 }
@@ -68,8 +74,11 @@
   background-repeat: no-repeat;
   transition: transform 0.6s ease;
   background-size: cover;
-  background-position: 50% 50%;
+  background-position: 50% 0%;
   background-color: gray;
   height: 100%;
   width: 35.10417vw;
+  @media screen and (max-width: 960px) {
+    width: 235px;
+  }
 }

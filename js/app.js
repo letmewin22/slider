@@ -1,6 +1,6 @@
+import {mousedown, mousemove, mouseup} from './events/mouseevents'
 import {Slider} from './Slider'
 import img from '/img/1.jpg'
-// import {Slider} from './ref/Slider2'
 
 window.addEventListener('load', () => {
   const items = document.querySelectorAll('[data-bg]')
@@ -14,4 +14,5 @@ window.addEventListener('load', () => {
 
   const slider = new Slider()
   slider.init()
+  // slider.destroy()
 })
