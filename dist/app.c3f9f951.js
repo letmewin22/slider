@@ -187,35 +187,25 @@ exports.mouseup = exports.mousemove = exports.mousedown = void 0;
 
 var _CustomMouseEvent = require("./CustomMouseEvent");
 
-var mousedownInstance = new _CustomMouseEvent.CustomMouseEvent(['mousedown', 'touchstart']);
-var mousedown = {
-  on: function on(target, cb, opts) {
-    return mousedownInstance.on(target, cb, opts);
-  },
-  off: function off(target, cb) {
-    return mousedownInstance.off(target, cb);
-  }
+var returnData = function returnData(instance) {
+  return {
+    on: function on(target, cb, opts) {
+      return instance.on(target, cb, opts);
+    },
+    off: function off(target, cb) {
+      return instance.off(target, cb);
+    }
+  };
 };
+
+var mousedownInstance = new _CustomMouseEvent.CustomMouseEvent(['mousedown', 'touchstart']);
+var mousedown = returnData(mousedownInstance);
 exports.mousedown = mousedown;
 var mousemoveInstance = new _CustomMouseEvent.CustomMouseEvent(['mousemove', 'touchmove']);
-var mousemove = {
-  on: function on(target, cb, opts) {
-    return mousemoveInstance.on(target, cb, opts);
-  },
-  off: function off(target, cb) {
-    return mousemoveInstance.off(target, cb);
-  }
-};
+var mousemove = returnData(mousemoveInstance);
 exports.mousemove = mousemove;
-var mouseupInstance = new _CustomMouseEvent.CustomMouseEvent(['mouseup', 'touchend']);
-var mouseup = {
-  on: function on(target, cb, opts) {
-    return mouseupInstance.on(target, cb, opts);
-  },
-  off: function off(target, cb) {
-    return mouseupInstance.off(target, cb);
-  }
-};
+var mouseupInstance = new _CustomMouseEvent.CustomMouseEvent(['mouseup', 'touchend', 'touchcancel']);
+var mouseup = returnData(mouseupInstance);
 exports.mouseup = mouseup;
 },{"./CustomMouseEvent":"js/events/CustomMouseEvent.js"}],"node_modules/@emotionagency/utils/build/raf/raf.js":[function(require,module,exports) {
 "use strict";
@@ -456,7 +446,7 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
 
 var Slider = /*#__PURE__*/function () {
   function Slider() {
-    var _opts$el, _opts$ease, _opts$speed, _opts$offset, _opts$velocity;
+    var _opts$el, _opts$ease, _opts$speed, _opts$offset, _opts$velocity, _opts$breakpoint, _opts$mobile$ease, _opts$mobile, _opts$mobile$speed, _opts$mobile2, _opts$mobile$offset, _opts$mobile3, _opts$mobile$velocity, _opts$mobile4;
 
     var opts = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
 
@@ -474,14 +464,29 @@ var Slider = /*#__PURE__*/function () {
 
     _defineProperty(this, "max", 0);
 
+    _defineProperty(this, "offsetValue", 0);
+
+    _defineProperty(this, "ease", 0);
+
+    _defineProperty(this, "speed", 0);
+
     _defineProperty(this, "offset", 0);
+
+    _defineProperty(this, "velocity", 0);
 
     this.opts = {
       el: (_opts$el = opts.el) !== null && _opts$el !== void 0 ? _opts$el : '.js-slider',
       ease: (_opts$ease = opts.ease) !== null && _opts$ease !== void 0 ? _opts$ease : 0.1,
       speed: (_opts$speed = opts.speed) !== null && _opts$speed !== void 0 ? _opts$speed : 1.5,
       offset: (_opts$offset = opts.offset) !== null && _opts$offset !== void 0 ? _opts$offset : 220,
-      velocity: (_opts$velocity = opts.velocity) !== null && _opts$velocity !== void 0 ? _opts$velocity : 25
+      velocity: (_opts$velocity = opts.velocity) !== null && _opts$velocity !== void 0 ? _opts$velocity : 25,
+      breakpoint: (_opts$breakpoint = opts.breakpoint) !== null && _opts$breakpoint !== void 0 ? _opts$breakpoint : 1024,
+      mobile: {
+        ease: (_opts$mobile$ease = opts === null || opts === void 0 ? void 0 : (_opts$mobile = opts.mobile) === null || _opts$mobile === void 0 ? void 0 : _opts$mobile.ease) !== null && _opts$mobile$ease !== void 0 ? _opts$mobile$ease : 0.1,
+        speed: (_opts$mobile$speed = opts === null || opts === void 0 ? void 0 : (_opts$mobile2 = opts.mobile) === null || _opts$mobile2 === void 0 ? void 0 : _opts$mobile2.speed) !== null && _opts$mobile$speed !== void 0 ? _opts$mobile$speed : 1.5,
+        offset: (_opts$mobile$offset = opts === null || opts === void 0 ? void 0 : (_opts$mobile3 = opts.mobile) === null || _opts$mobile3 === void 0 ? void 0 : _opts$mobile3.offset) !== null && _opts$mobile$offset !== void 0 ? _opts$mobile$offset : 80,
+        velocity: (_opts$mobile$velocity = opts === null || opts === void 0 ? void 0 : (_opts$mobile4 = opts.mobile) === null || _opts$mobile4 === void 0 ? void 0 : _opts$mobile4.velocity) !== null && _opts$mobile$velocity !== void 0 ? _opts$mobile$velocity : 12
+      }
     };
     this.slider = document.querySelector(this.opts.el);
     this.sliderInner = this.slider.querySelector('.js-slider__inner');
@@ -529,8 +534,8 @@ var Slider = /*#__PURE__*/function () {
     key: "onMousemove",
     value: function onMousemove(e) {
       var left = e.clientX;
-      this.currentX = this.endX + (left - this.startX) * this.opts.speed;
-      this.currentX = (0, _utils.clamp)(this.currentX, this.min + this.offset, this.max - this.offset);
+      this.currentX = this.endX + (left - this.startX) * this.speed;
+      this.currentX = (0, _utils.clamp)(this.currentX, this.min + this.offsetValue, this.max - this.offsetValue);
     }
   }, {
     key: "onMousedown",
@@ -544,13 +549,13 @@ var Slider = /*#__PURE__*/function () {
       this.slides.forEach(function (slide, idx) {
         slide.style.transform = "translateX(".concat(-16 * idx, "px)");
       });
-      this.offset += this.opts.offset;
+      this.offsetValue += this.offset;
       this.currentX = (0, _utils.clamp)(this.currentX, this.min, this.max);
     }
   }, {
     key: "onMouseup",
     value: function onMouseup() {
-      this.offset = 0;
+      this.offsetValue = 0;
       this.currentX = (0, _utils.clamp)(this.currentX, this.min, this.max);
 
       _mouseevents.mousemove.off(document.body, this.onMousemove);
@@ -564,17 +569,23 @@ var Slider = /*#__PURE__*/function () {
   }, {
     key: "resize",
     value: function resize() {
+      var _this2 = this;
+
+      var params = ['ease', 'speed', 'offset', 'velocity'];
+      params.forEach(function (p) {
+        _this2[p] = screen.width > _this2.opts.breakpoint ? _this2.opts[p] : _this2.opts.mobile[p];
+      });
       this.setSizes();
     }
   }, {
     key: "animate",
     value: function animate() {
-      this.lastX = (0, _utils.lerp)(this.lastX, this.currentX, this.opts.ease);
+      this.lastX = (0, _utils.lerp)(this.lastX, this.currentX, this.ease);
       this.lastX = Math.floor(this.lastX * 100) / 100;
       var sd = this.currentX - this.lastX;
       var acc = sd / window.innerWidth;
       var velo = +acc;
-      this.sliderInner.style.transform = "translate3d(".concat(this.lastX, "px, 0, 0) skewX(").concat(velo * this.opts.velocity, "deg)");
+      this.sliderInner.style.transform = "translate3d(".concat(this.lastX, "px, 0, 0) skewX(").concat(velo * this.velocity, "deg)");
     }
   }, {
     key: "destroy",

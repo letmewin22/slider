@@ -12,7 +12,12 @@ export class Slider {
   min = 0
   max = 0
 
+  offsetValue = 0
+
+  ease = 0
+  speed = 0
   offset = 0
+  velocity = 0
 
   constructor(opts = {}) {
     this.opts = {
@@ -21,6 +26,13 @@ export class Slider {
       speed: opts.speed ?? 1.5,
       offset: opts.offset ?? 220,
       velocity: opts.velocity ?? 25,
+      breakpoint: opts.breakpoint ?? 1024,
+      mobile: {
+        ease: opts?.mobile?.ease ?? 0.1,
+        speed: opts?.mobile?.speed ?? 1.5,
+        offset: opts?.mobile?.offset ?? 80,
+        velocity: opts?.mobile?.velocity ?? 12,
+      },
     }
 
     this.slider = document.querySelector(this.opts.el)
@@ -67,11 +79,11 @@ export class Slider {
   onMousemove(e) {
     const left = e.clientX
 
-    this.currentX = this.endX + (left - this.startX) * this.opts.speed
+    this.currentX = this.endX + (left - this.startX) * this.speed
     this.currentX = clamp(
       this.currentX,
-      this.min + this.offset,
-      this.max - this.offset
+      this.min + this.offsetValue,
+      this.max - this.offsetValue
     )
   }
 
@@ -88,12 +100,12 @@ export class Slider {
       slide.style.transform = `translateX(${-16 * idx}px)`
     })
 
-    this.offset += this.opts.offset
+    this.offsetValue += this.offset
     this.currentX = clamp(this.currentX, this.min, this.max)
   }
 
   onMouseup() {
-    this.offset = 0
+    this.offsetValue = 0
     this.currentX = clamp(this.currentX, this.min, this.max)
 
     mousemove.off(document.body, this.onMousemove)
@@ -107,11 +119,18 @@ export class Slider {
   }
 
   resize() {
+    const params = ['ease', 'speed', 'offset', 'velocity']
+
+    params.forEach(p => {
+      this[p] =
+        screen.width > this.opts.breakpoint ? this.opts[p] : this.opts.mobile[p]
+    })
+
     this.setSizes()
   }
 
   animate() {
-    this.lastX = lerp(this.lastX, this.currentX, this.opts.ease)
+    this.lastX = lerp(this.lastX, this.currentX, this.ease)
     this.lastX = Math.floor(this.lastX * 100) / 100
 
     const sd = this.currentX - this.lastX
@@ -120,7 +139,7 @@ export class Slider {
 
     this.sliderInner.style.transform = `translate3d(${
       this.lastX
-    }px, 0, 0) skewX(${velo * this.opts.velocity}deg)`
+    }px, 0, 0) skewX(${velo * this.velocity}deg)`
   }
 
   destroy() {
