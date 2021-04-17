@@ -1,0 +1,8 @@
+{
+  "devDependencies": {
+    "sass": "^1.32.10"
+  },
+  "dependencies": {
+    "@emotionagency/utils": "0.0.6"
+  }
+}
